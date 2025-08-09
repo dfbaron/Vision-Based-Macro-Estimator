@@ -1,3 +1,15 @@
-data/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-artifacts/
+# Environments
+/venv/
+/.env
+
+# Project-specific ignores
+/data/
+/artifacts/
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints
