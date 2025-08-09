@@ -30,7 +30,7 @@ class Nutrition5kDataset(Dataset):
         self.transform = transform
         
         # 2. Define the target columns for our regression task
-        self.target_columns = ['total_calories', 'total_fat', 'total_carb', 'total_protein']
+        self.target_columns = ['total_carb']
 
     def __len__(self) -> int:
         """Returns the total number of samples in the dataset."""
@@ -57,11 +57,6 @@ class Nutrition5kDataset(Dataset):
             image = Image.open(image_path).convert("RGB")
         except FileNotFoundError:
             print(f"Warning: Image not found at {image_path}. Skipping.")
-            # Return a dummy tensor if you want to handle this gracefully,
-            # or you can just let it error out.
-            # For this example, we'll try the next item if possible,
-            # though in a real Dataloader this might be complex.
-            # A cleaner approach is to ensure data integrity beforehand.
             return self.__getitem__((idx + 1) % len(self)) # Be careful with this approach
 
         # 3. Extract the label (nutritional info) and convert to a tensor

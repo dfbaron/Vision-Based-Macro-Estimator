@@ -1,0 +1,24 @@
+[data_paths]
+images_csv = data/csv_files/images.csv
+labels_csv = data/csv_files/labels.csv
+
+[model_paths]
+save_path = artifacts/models/best_vit_regressor.pth
+resume_checkpoint_path = artifacts/models/best_vit_regressor.pth
+
+[model_params]
+name = vit_base_patch16_224.augreg_in21k
+n_outputs = 4
+
+[training_params]
+learning_rate = 0.0001
+batch_size = 32
+epochs = 100
+weight_decay = 0.0001
+
+[data_split]
+val_split = 0.15
+test_split = 0.15
+
+[callbacks]
+early_stopping_patience = 10
