@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
 from pathlib import Path
+import torch.optim as optim
 
 class EarlyStopping:
     """Stops training when a monitored metric has stopped improving."""
-    def __init__(self, patience: int = 7, verbose: bool = False, delta: float = 0, path: Path = MODEL_SAVE_PATH):
+    def __init__(self, patience: int = 7, verbose: bool = False, delta: float = 0, path: Path = '/'):
         self.patience = patience
         self.verbose = verbose
         self.counter = 0
@@ -12,7 +13,7 @@ class EarlyStopping:
         self.early_stop = False
         self.val_loss_min = float('inf')
         self.delta = delta
-        self.path = path
+        self.path = Path(path)
 
     def __call__(self, val_loss: float, model: nn.Module, optimizer: optim.Optimizer, epoch: int):
         score = -val_loss

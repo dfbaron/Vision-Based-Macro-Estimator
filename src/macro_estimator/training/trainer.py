@@ -39,19 +39,19 @@ class ModelTrainer:
     def _prepare_dataloaders(self):
         """Prepares and splits the dataset into train, validation, and test DataLoaders."""
         print("--- Preparing DataLoaders ---")
-        temp_model = timm.create_model(self.config['model_name'], pretrained=True)
+        temp_model = timm.create_model(self.config['model_params']['model_name'], pretrained=True)
         data_config = timm.data.resolve_data_config(model=temp_model)
         transforms = timm.data.create_transform(**data_config)
         del temp_model
 
-        full_dataset = Nutrition5kDataset(self.config['images_csv'], self.config['labels_csv'], transform=transforms)
+        full_dataset = Nutrition5kDataset(self.config['data_paths']['images_csv'], self.config['data_paths']['labels_csv'], transform=transforms)
         
         dish_ids = full_dataset.data_frame['dish_id'].unique()
         np.random.shuffle(dish_ids)
 
         n_dishes = len(dish_ids)
-        test_split_idx = int(n_dishes * self.config['test_split'])
-        val_split_idx = test_split_idx + int(n_dishes * self.config['val_split'])
+        test_split_idx = int(n_dishes * float(self.config['data_split']['test_split']))
+        val_split_idx = test_split_idx + int(n_dishes * float(self.config['data_split']['val_split']))
         
         train_dish_ids = dish_ids[val_split_idx:]
         val_dish_ids = dish_ids[test_split_idx:val_split_idx]
@@ -63,27 +63,27 @@ class ModelTrainer:
 
         train_dataset, val_dataset, test_dataset = Subset(full_dataset, train_indices), Subset(full_dataset, val_indices), Subset(full_dataset, test_indices)
         
-        self.train_loader = DataLoader(train_dataset, batch_size=self.config['batch_size'], shuffle=True, num_workers=4, pin_memory=True)
-        self.val_loader = DataLoader(val_dataset, batch_size=self.config['batch_size'], shuffle=False, num_workers=4)
-        self.test_loader = DataLoader(test_dataset, batch_size=self.config['batch_size'], shuffle=False, num_workers=4)
+        self.train_loader = DataLoader(train_dataset, batch_size=int(self.config['training_params']['batch_size']), shuffle=True, num_workers=4, pin_memory=True)
+        self.val_loader = DataLoader(val_dataset, batch_size=int(self.config['training_params']['batch_size']), shuffle=False, num_workers=4)
+        self.test_loader = DataLoader(test_dataset, batch_size=int(self.config['training_params']['batch_size']), shuffle=False, num_workers=4)
         
         print(f"Data loaded: {len(train_dataset)} train, {len(val_dataset)} val, {len(test_dataset)} test samples.")
 
     def _prepare_model(self):
         """Initializes the model, optimizer, criterion, and early stopper."""
         print("--- Preparing Model, Optimizer, and Callbacks ---")
-        self.model = ViTRegressor(model_name=self.config['model_name'], n_outputs=4).to(self.device)
-        self.optimizer = optim.AdamW(self.model.parameters(), lr=self.config['learning_rate'], weight_decay=self.config['weight_decay'])
+        self.model = ViTRegressor(model_name=self.config['model_params']['model_name'], n_outputs=int(self.config['model_params']['n_outputs'])).to(self.device)
+        self.optimizer = optim.AdamW(self.model.parameters(), lr=float(self.config['training_params']['learning_rate']), weight_decay=float(self.config['training_params']['weight_decay']))
         self.criterion = nn.MSELoss()
         self.early_stopper = EarlyStopping(
-            patience=self.config['early_stopping_patience'],
+            patience=int(self.config['callbacks']['early_stopping_patience']),
             verbose=True,
-            path=self.config['model_save_path']
+            path=self.config['model_paths']['model_save_path']
         )
 
     def _load_checkpoint(self) -> Tuple[int, float]:
         """Loads a training checkpoint if specified."""
-        path = self.config.get('resume_checkpoint_path')
+        path = Path(self.config['model_paths']['resume_checkpoint_path'])
         if path and path.exists():
             print(f"--- Resuming training from checkpoint: {path} ---")
             checkpoint = torch.load(path, map_location='cpu')
@@ -168,8 +168,8 @@ class ModelTrainer:
         print("\n--- Starting Training ---")
         
         # Step 2: Main training loop
-        for epoch in range(start_epoch, self.config['training_params']['epochs']):
-            print(f"\nEpoch {epoch+1}/{self.config['training_params']['epochs']}")
+        for epoch in range(start_epoch, int(self.config['training_params']['epochs'])):
+            print(f"\nEpoch {epoch+1}/{int(self.config['training_params']['epochs'])}")
             
             # Run one epoch of training
             train_loss = self._train_epoch()
@@ -201,7 +201,7 @@ class ModelTrainer:
         """Evaluates the final model on the unseen test set."""
         print("\n--- Evaluating on Test Set ---")
         # Load the best performing model
-        checkpoint = torch.load(self.config['model_save_path'])
+        checkpoint = torch.load(self.config['model_paths']['model_save_path'])
         self.model.load_state_dict(checkpoint['model_state_dict'])
         
         test_loss, test_mae = self._validate_epoch()  # We can reuse the validation logic for testing
