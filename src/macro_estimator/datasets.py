@@ -10,7 +10,7 @@ class Nutrition5kDataset(Dataset):
     Custom PyTorch Dataset for the Nutrition5k data.
     Connects image paths with their corresponding nutritional information.
     """
-    def __init__(self, images_csv_path: str, labels_csv_path: str, transform: Any = None):
+    def __init__(self, images_labels_csv_path: str, transform: Any = None):
         """
         Args:
             images_csv_path (str): Path to the CSV file with image paths and dish_ids.
@@ -19,13 +19,9 @@ class Nutrition5kDataset(Dataset):
         """
         super().__init__()
         
-        # 1. Load data and merge the two CSVs into a single master DataFrame
-        # This is efficient and keeps all information for a sample in one row.
-        df_images = pd.read_csv(images_csv_path)
-        df_labels = pd.read_csv(labels_csv_path)
-        
+        # 1. Load and merge the CSV files       
         # Merge based on the common 'dish_id' column
-        self.data_frame = pd.merge(df_images, df_labels, on="dish_id")
+        self.data_frame = pd.read_csv(images_labels_csv_path)
         
         self.transform = transform
         

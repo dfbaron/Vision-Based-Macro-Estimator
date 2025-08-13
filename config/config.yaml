@@ -1,6 +1,7 @@
 [data_paths]
-images_csv = data/csv_files/images.csv
-labels_csv = data/csv_files/labels.csv
+image_dir = data/Extracted_Files/nutrition5k_dataset/imagery/side_angles
+metadata_path = data/Extracted_Files/nutrition5k_dataset/metadata/dish_metadata_cafe1.csv,data/Extracted_Files/nutrition5k_dataset/metadata/dish_metadata_cafe2.csv
+output_dir = data/Processed_CSVs
 
 [model_paths]
 model_save_path = artifacts/models/best_vit_regressor.pth
@@ -17,8 +18,12 @@ epochs = 100
 weight_decay = 0.0001
 
 [data_split]
-val_split = 0.15
-test_split = 0.15
+val_split = 0.1
+test_split = 0.1
 
 [callbacks]
 early_stopping_patience = 5
+
+[settings]
+image_glob_pattern = frames_sampled70/*.jpeg
+random_seed = 42

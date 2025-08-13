@@ -26,6 +26,7 @@ class ModelTrainer:
         self.config = config
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"--- Using device: {self.device} ---")
+        self.output_dir = Path(config['data_paths']['output_dir'])
 
         # Initialize core components to None
         self.model = None
@@ -43,25 +44,10 @@ class ModelTrainer:
         data_config = timm.data.resolve_data_config(model=temp_model)
         transforms = timm.data.create_transform(**data_config)
         del temp_model
-
-        full_dataset = Nutrition5kDataset(self.config['data_paths']['images_csv'], self.config['data_paths']['labels_csv'], transform=transforms)
         
-        dish_ids = full_dataset.data_frame['dish_id'].unique()
-        np.random.shuffle(dish_ids)
-
-        n_dishes = len(dish_ids)
-        test_split_idx = int(n_dishes * float(self.config['data_split']['test_split']))
-        val_split_idx = test_split_idx + int(n_dishes * float(self.config['data_split']['val_split']))
-        
-        train_dish_ids = dish_ids[val_split_idx:]
-        val_dish_ids = dish_ids[test_split_idx:val_split_idx]
-        test_dish_ids = dish_ids[:test_split_idx]
-
-        train_indices = full_dataset.data_frame[full_dataset.data_frame['dish_id'].isin(train_dish_ids)].index.tolist()
-        val_indices = full_dataset.data_frame[full_dataset.data_frame['dish_id'].isin(val_dish_ids)].index.tolist()
-        test_indices = full_dataset.data_frame[full_dataset.data_frame['dish_id'].isin(test_dish_ids)].index.tolist()
-
-        train_dataset, val_dataset, test_dataset = Subset(full_dataset, train_indices), Subset(full_dataset, val_indices), Subset(full_dataset, test_indices)
+        train_dataset = Nutrition5kDataset(self.output_dir / "train_dataset.csv", transform=transforms)
+        val_dataset = Nutrition5kDataset(self.output_dir / "validation_dataset.csv", transform=transforms)
+        test_dataset = Nutrition5kDataset(self.output_dir / "test_dataset.csv", transform=transforms)
         
         self.train_loader = DataLoader(train_dataset, batch_size=int(self.config['training_params']['batch_size']), shuffle=True, num_workers=4, pin_memory=True)
         self.val_loader = DataLoader(val_dataset, batch_size=int(self.config['training_params']['batch_size']), shuffle=False, num_workers=4)
@@ -150,7 +136,7 @@ class ModelTrainer:
         # Aquí el cálculo de `total_predictions` puede ser un poco delicado si
         # el último batch es más pequeño. Una forma más robusta es esta:
         total_items = len(self.val_loader.dataset)
-        num_targets = len(self.val_loader.dataset.dataset.target_columns) # Accede al dataset original
+        num_targets = len(self.config['model_params']['n_outputs'])
         avg_mae = running_mae / (total_items * num_targets)
         
         return avg_loss, avg_mae

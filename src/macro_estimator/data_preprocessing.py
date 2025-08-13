@@ -1,27 +1,20 @@
 """
 A class to encapsulate and manage the data preparation tasks for the Nutrition5k dataset.
-This includes scanning image directories, extracting dish_ids, and parsing complex
-metadata CSVs into clean, structured CSVs for downstream use.
+This includes scanning image directories, parsing metadata, merging data, and creating
+separate, reproducible train, validation, and test sets.
 """
 import csv
 import json
 from pathlib import Path
 import pandas as pd
-from typing import List, Dict, Any, Generator
+from typing import List, Dict, Any, Generator, Tuple
+from sklearn.model_selection import train_test_split
 
 class DataPreparer:
     """
-    Manages the preprocessing and organization of Nutrition5k dataset files.
-
-    It handles:
-    - Scanning image directories to create a mapping of image paths to dish IDs.
-    - Parsing the complex dish metadata CSV into a flattened, structured format.
-    - Saving the processed data into standardized CSV files.
+    Manages the preprocessing, merging, and splitting of the Nutrition5k dataset.
     """
-
-    # --- Configuration and Schema Definitions ---
-    # These are class-level constants. They can be overridden by instance attributes
-    # if passed in __init__ or modified directly via the class.
+    # Class-level constants for schema definitions
     DISH_COLUMNS: List[str] = ['dish_id', 'total_calories', 'total_mass', 'total_fat', 'total_carb', 'total_protein']
     INGREDIENT_COLUMNS: List[str] = ['id', 'name', 'grams', 'calories', 'fat', 'carb', 'protein']
     TYPE_SCHEMA: Dict[str, Any] = {
@@ -30,39 +23,138 @@ class DataPreparer:
         'calories': float, 'fat': float, 'carb': float, 'protein': float
     }
 
-    def __init__(self, 
-                 base_data_path: Path = Path("data/Extracted_Files/nutrition5k_dataset"),
-                 output_dir: Path = Path("data/csv_files"),
-                 image_glob_pattern: str = "frames_sampled70/*.jpeg",
-                 metadata_filename: str = "dish_metadata_cafe1.csv",
-                 images_csv_filename: str = "images.csv",
-                 labels_csv_filename: str = "labels.csv"):
+    def __init__(self, config: Dict[str, Any]):
         """
-        Initializes the DataPreparer with paths and configuration.
+        Initializes the DataPreparer with a configuration dictionary.
 
         Args:
-            base_data_path (Path): Root path to the extracted Nutrition5k dataset.
-            output_dir (Path): Directory where processed CSVs will be saved.
-            image_glob_pattern (str): Pattern to find image files (e.g., "frames_sampled70/*.jpeg").
-            metadata_filename (str): Name of the metadata CSV file.
-            images_csv_filename (str): Name of the output CSV for image paths.
-            labels_csv_filename (str): Name of the output CSV for parsed labels.
+            config (Dict[str, Any]): A dictionary containing all necessary configurations.
         """
-        self.base_data_path = base_data_path
-        self.image_dir = self.base_data_path / "imagery/side_angles"
-        self.metadata_path = self.base_data_path / "metadata" / metadata_filename
+        self.config = config
         
-        self.output_dir = output_dir
-        self.output_images_csv_path = self.output_dir / images_csv_filename
-        self.output_labels_csv_path = self.output_dir / labels_csv_filename
+        # Paths are derived from the config for clarity
+        self.image_dir = Path(config['data_paths']['image_dir'])
+        self.metadata_paths = [Path(path) for path in config['data_paths']['metadata_path'].split(',')]
+        self.output_dir = Path(config['data_paths']['output_dir'])
         
-        self.image_glob_pattern = image_glob_pattern
+        self.image_glob_pattern = config['settings']['image_glob_pattern']
+        self.random_seed = config['settings']['random_seed']
         
         # Ensure output directory exists
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
-        print(f"DataPreparer initialized with base_data_path: {self.base_data_path}")
-        print(f"Output directory: {self.output_dir}")
+        print("DataPreparer initialized.")
+
+    def run(self):
+        """
+        Executes the full data preparation pipeline:
+        1. Load and parse raw data.
+        2. Merge into a master DataFrame.
+        3. Split the data by dish_id.
+        4. Save the train, validation, and test sets as separate CSV files.
+        """
+        print("\n--- Starting Data Preparation Process ---")
+        
+        # Step 1: Load and parse the raw data sources
+        df_images = self._create_image_path_df()
+        df_labels = self._parse_dish_metadata_df()
+        
+        if df_images is None or df_labels.empty:
+            print("Aborting preparation due to missing data.")
+            return
+
+        # Step 2: Merge into a single master DataFrame
+        master_df = pd.merge(df_images, df_labels, on='dish_id')
+        print(f"Created master DataFrame with {len(master_df)} total samples.")
+
+        # Step 3: Split the data into train, validation, and test sets
+        train_df, val_df, test_df = self._split_data(master_df)
+
+        # Step 4: Save each DataFrame to its own CSV file
+        self._save_splits(train_df, val_df, test_df)
+
+        print("\n--- Data Preparation Finished ---")
+
+    def _create_image_path_df(self) -> pd.DataFrame | None:
+        """Scans for images and creates a DataFrame of paths and dish_ids."""
+        print(f"Scanning for images in '{self.image_dir}'...")
+        image_paths = list(self.image_dir.rglob(self.image_glob_pattern))
+        
+        if not image_paths:
+            print(f"Warning: No images found with pattern '{self.image_glob_pattern}'.")
+            return None
+
+        df = pd.DataFrame(image_paths, columns=['path'])
+        df['dish_id'] = df['path'].apply(lambda p: p.parent.parent.name)
+        return df
+
+    def _parse_dish_metadata_df(self) -> pd.DataFrame:
+        """Parses the complex dish metadata CSV."""
+        parsed_dishes = []
+        for metadata_path in self.metadata_paths:
+            print(f"Parsing dish metadata from '{metadata_path}'...")
+            try:
+                with metadata_path.open(mode='r', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    for row in reader:
+                        if not row: continue
+                        dish_data = self._process_metadata_row(row)
+                        parsed_dishes.append(dish_data)
+            except FileNotFoundError:
+                print(f"Error: Metadata file not found at '{metadata_path}'")
+        
+        return pd.DataFrame(parsed_dishes)
+
+    def _process_metadata_row(self, row: List[str]) -> Dict[str, Any]:
+        """Processes a single row from the metadata CSV."""
+        dish_data = dict(zip(self.DISH_COLUMNS, row))
+        dish_data = self._convert_types(dish_data, self.TYPE_SCHEMA)
+        
+        ingredient_data_flat = row[len(self.DISH_COLUMNS):]
+        ingredients_list = [
+            self._convert_types(dict(zip(self.INGREDIENT_COLUMNS, chunk)), self.TYPE_SCHEMA)
+            for chunk in self._chunker(ingredient_data_flat, len(self.INGREDIENT_COLUMNS))
+        ]
+        dish_data['ingredients'] = json.dumps(ingredients_list)
+        return dish_data
+
+    def _split_data(self, master_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        """Splits the master DataFrame by dish_id into train, val, and test sets."""
+        print("Splitting data into train, validation, and test sets by dish_id...")
+        
+        dish_ids = master_df['dish_id'].unique()
+        val_size = float(self.config['data_split']['val_split'])
+        test_size = float(self.config['data_split']['test_split'])
+        
+        # First split: separate test set from the rest
+        train_ids, test_val_ids = train_test_split(
+            dish_ids,
+            test_size=test_size+val_size,
+            random_state=int(self.random_seed)
+        )
+        
+        # Second split: separate train and validation sets
+        # Calculate the correct proportion for the validation set from the remaining data
+        test_ids, val_ids = train_test_split(
+            test_val_ids,
+            test_size=0.5,
+            random_state=int(self.random_seed)
+        )
+        
+        # Filter the master DataFrame to create the final splits
+        train_df = master_df[master_df['dish_id'].isin(train_ids)]
+        val_df = master_df[master_df['dish_id'].isin(val_ids)]
+        test_df = master_df[master_df['dish_id'].isin(test_ids)]
+        
+        print(f"Split complete: {len(train_df)} train, {len(val_df)} val, {len(test_df)} test samples.")
+        return train_df, val_df, test_df
+
+    def _save_splits(self, train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame):
+        """Saves the split DataFrames to separate CSV files."""
+        train_df.to_csv(self.output_dir / "train_dataset.csv", index=False)
+        val_df.to_csv(self.output_dir / "validation_dataset.csv", index=False)
+        test_df.to_csv(self.output_dir / "test_dataset.csv", index=False)
+        print(f"Datasets saved successfully in '{self.output_dir}'")
 
     @staticmethod
     def _chunker(sequence: List[Any], size: int) -> Generator[List[Any], None, None]:
@@ -83,83 +175,3 @@ class DataPreparer:
             else:
                 converted[key] = value
         return converted
-
-    def create_image_path_csv(self) -> None:
-        """
-        Scans for processed JPEG images based on the configured pattern and
-        creates a CSV file mapping image paths to their dish_ids.
-        """
-        print(f"Scanning for images in '{self.image_dir}' using pattern '{self.image_glob_pattern}'...")
-        
-        image_paths = list(self.image_dir.rglob(self.image_glob_pattern))
-        
-        if not image_paths:
-            print("Warning: No images found. Check the image_dir and image_glob_pattern.")
-            return
-
-        df = pd.DataFrame(image_paths, columns=['path'])
-        
-        # Extract dish_id from the folder structure (e.g., .../dish_ID/frames_sampled70/image.jpeg)
-        df['dish_id'] = df['path'].apply(lambda p: p.parent.parent.name)
-        
-        df.to_csv(self.output_images_csv_path, index=False)
-        print(f"Successfully created image path CSV with {len(df)} entries at '{self.output_images_csv_path}'")
-
-    def parse_dish_metadata_to_df(self) -> pd.DataFrame:
-        """
-        Parses the complex dish metadata CSV into a clean pandas DataFrame.
-
-        Returns:
-            pd.DataFrame: A DataFrame with one row per dish and ingredients as a JSON string.
-        """
-        print(f"Parsing dish metadata from '{self.metadata_path}'...")
-        parsed_dishes = []
-        
-        try:
-            with self.metadata_path.open(mode='r', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                for row in reader:
-                    if not row: continue
-
-                    # Use class constants for column names
-                    dish_data = dict(zip(self.DISH_COLUMNS, row))
-                    dish_data = self._convert_types(dish_data, self.TYPE_SCHEMA)
-
-                    ingredient_data_flat = row[len(self.DISH_COLUMNS):]
-                    ingredients_list = [
-                        self._convert_types(dict(zip(self.INGREDIENT_COLUMNS, chunk)), self.TYPE_SCHEMA)
-                        for chunk in self._chunker(ingredient_data_flat, len(self.INGREDIENT_COLUMNS))
-                    ]
-                    
-                    dish_data['ingredients'] = json.dumps(ingredients_list)
-                    parsed_dishes.append(dish_data)
-                    
-        except FileNotFoundError:
-            print(f"Error: Metadata file not found at '{self.metadata_path}'")
-            return pd.DataFrame()
-
-        print(f"Successfully parsed {len(parsed_dishes)} dishes.")
-        return pd.DataFrame(parsed_dishes)
-
-    def run_preparation(self) -> None:
-        """
-        Orchestrates the full data preparation process:
-        1. Creates the image paths CSV.
-        2. Parses the metadata CSV and saves it.
-        """
-        print("\n--- Starting Data Preparation Process ---")
-        
-        # Task 1: Create the image paths CSV
-        self.create_image_path_csv()
-        
-        print("\n" + "-"*40 + "\n")
-        
-        # Task 2: Parse metadata and save as CSV
-        df_labels = self.parse_dish_metadata_to_df()
-        if not df_labels.empty:
-            df_labels.to_csv(self.output_labels_csv_path, index=False)
-            print(f"Successfully saved labels CSV at '{self.output_labels_csv_path}'")
-            print("Labels DataFrame head:")
-            print(df_labels.head())
-
-        print("\n--- Data Preparation Finished ---")
