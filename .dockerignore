@@ -1,0 +1,24 @@
+# Ignorar entornos de Conda/Python
+.venv
+/env/
+/venv/
+/conda/
+__pycache__/
+*.pyc
+
+# Archivos de configuración de IDE y OS
+.vscode
+.idea
+*.DS_Store
+
+# Ignorar el entorno de Conda
+/macro-estimator/
+
+# Ignorar datos crudos y temporales (¡no deben estar en la imagen!)
+data/Extracted_Files/
+data/raw/
+notebooks/
+
+# Archivos de Git
+.git
+.gitignore
