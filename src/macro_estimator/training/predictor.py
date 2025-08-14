@@ -4,6 +4,7 @@ import timm
 from pathlib import Path
 from PIL import Image
 import io
+import numpy as np
 from typing import Dict, Any
 
 # Importar la arquitectura del modelo
@@ -22,7 +23,7 @@ class Predictor:
         self.model = self._load_model()
         
     def _load_transforms(self):
-        model_name = self.config['model_params']['name']
+        model_name = self.config['model_params']['model_name']
         temp_model = timm.create_model(model_name, pretrained=True)
         data_config = timm.data.resolve_data_config(model=temp_model)
         transforms = timm.data.create_transform(**data_config)
@@ -30,16 +31,16 @@ class Predictor:
         return transforms
 
     def _load_model(self) -> torch.nn.Module:
-        model_path = Path(self.config['model_paths']['save_path'])
+        model_path = Path(self.config['model_paths']['model_save_path'])
         if not model_path.exists():
             raise FileNotFoundError(f"Model checkpoint not found at: {model_path}")
 
         print(f"Loading model from: {model_path}")
         model = ViTRegressor(
-            model_name=self.config['model_params']['name'],
-            n_outputs=self.config['model_params']['n_outputs']
+            model_name=self.config['model_params']['model_name'],
+            n_outputs=int(self.config['model_params']['n_outputs'])
         )
-        checkpoint = torch.load(model_path, map_location=self.device)
+        checkpoint = torch.load(model_path, map_location=self.device, weights_only=True)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.to(self.device)
         model.eval()
@@ -60,14 +61,21 @@ class Predictor:
         with torch.no_grad():
             prediction = self.model(image_tensor)
             
-        macros = prediction.squeeze().cpu().numpy()
+        macros = prediction.cpu().numpy()[0]
         
-        return {
-            'calories': round(float(macros[0]), 2),
-            'fat_grams': round(float(macros[1]), 2),
-            'carb_grams': round(float(macros[2]), 2),
-            'protein_grams': round(float(macros[3]), 2)
-        }
+        if len(macros) == 4:
+            return {
+                'calories': max(0, round(float(macros[0]), 2)),
+                'fat_grams': max(0, round(float(macros[1]), 2)),
+                'carb_grams': max(0, round(float(macros[2]), 2)),
+                'protein_grams': max(0, round(float(macros[3]), 2))
+            }
+        elif len(macros) == 1:
+            return {
+                'carb_grams': max(0, round(float(macros[0]), 2))
+            }
+        else:
+            raise TypeError(f"Unexpected type for prediction output: {type(macros)}. Expected torch.Tensor or np.ndarray.")
 
     def predict_from_file(self, image_path: Path) -> Dict[str, float]:
         """

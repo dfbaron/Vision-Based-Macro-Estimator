@@ -1,0 +1,33 @@
+name: macro-estimator
+channels:
+  - pytorch
+  - nvidia   # Esencial para las dependencias de CUDA
+  - conda-forge
+  - defaults # Es bueno tenerlo como último recurso
+dependencies:
+  # --- Core Frameworks ---
+  - python=3.10
+  - pip
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=11.8 # ¡IMPORTANTE! Cambia a "cpuonly" si no se necesita GPU
+
+  # --- Machine Learning & Data Science ---
+  - timm
+  - pandas
+  - scikit-learn
+  - numpy # Aunque es dependencia de otros, es bueno explicitarlo
+  - tqdm
+
+  # --- API & Application ---
+  - pyyaml         # Para leer archivos de configuración .yaml
+  - streamlit
+  - altair         # Para los gráficos en Streamlit
+  
+  # --- Paquetes a instalar con Pip ---
+  # (FastAPI y sus dependencias a menudo se manejan mejor con Pip)
+  - pip:
+    - fastapi
+    - uvicorn[standard]
+    - python-multipart

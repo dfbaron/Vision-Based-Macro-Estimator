@@ -72,7 +72,7 @@ class ModelTrainer:
         path = Path(self.config['model_paths']['resume_checkpoint_path'])
         if path and path.exists():
             print(f"--- Resuming training from checkpoint: {path} ---")
-            checkpoint = torch.load(path, map_location='cpu')
+            checkpoint = torch.load(path, map_location='cpu', weights_only=True)
             self.model.load_state_dict(checkpoint['model_state_dict'])
             self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             start_epoch = checkpoint['epoch'] + 1
@@ -187,7 +187,7 @@ class ModelTrainer:
         """Evaluates the final model on the unseen test set."""
         print("\n--- Evaluating on Test Set ---")
         # Load the best performing model
-        checkpoint = torch.load(self.config['model_paths']['model_save_path'])
+        checkpoint = torch.load(self.config['model_paths']['model_save_path'], weights_only=True)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         
         test_loss, test_mae = self._validate_epoch()  # We can reuse the validation logic for testing

@@ -26,7 +26,7 @@ class Nutrition5kDataset(Dataset):
         self.transform = transform
         
         # 2. Define the target columns for our regression task
-        self.target_columns = ['total_carb']
+        self.target_columns = ['total_calories', 'total_fat', 'total_carb', 'total_protein']
 
     def __len__(self) -> int:
         """Returns the total number of samples in the dataset."""

@@ -85,7 +85,7 @@ vision-based-macro-estimator/
 ├── scripts/                  # Executable scripts for running the pipeline
 │   ├── run_data_prep.py
 │   ├── train.py
-│   └── serve_api.py
+│   └── server_api.py
 ├── src/
 │   └── macro_estimator/      # Source code package
 │       ├── __init__.py

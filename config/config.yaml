@@ -9,7 +9,7 @@ resume_checkpoint_path = artifacts/models/best_vit_regressor.pth
 
 [model_params]
 model_name = vit_base_patch16_224.augreg_in21k
-n_outputs = 1
+n_outputs = 4
 
 [training_params]
 learning_rate = 0.0001

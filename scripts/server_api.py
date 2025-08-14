@@ -1,10 +1,10 @@
 # scripts/serve_api.py
 import sys
 from pathlib import Path
-import yaml
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
+import configparser
 
 # Añadir el directorio src al path de Python
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -14,10 +14,10 @@ from src.macro_estimator.training.predictor import Predictor
 
 # --- 1. Cargar Configuración y Modelo (¡se hace una sola vez al iniciar!) ---
 
-def load_config(config_path="configs/training_config.yaml") -> dict:
+def load_config(config_path="config/config.yaml") -> dict:
     """Carga la configuración desde un archivo YAML."""
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
+    config = configparser.ConfigParser()
+    config.read(config_path)
     return config
 
 # Cargar la configuración
