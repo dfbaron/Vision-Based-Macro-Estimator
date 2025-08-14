@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copiar el código fuente, la configuración y los artefactos del modelo
 COPY ./src /app/src
 COPY ./scripts /app/scripts
-COPY ./configs /app/configs
+COPY ./config /app/config
 COPY ./artifacts /app/artifacts
 
 # --- Etapa 4: Configuración de Red y Ejecución ---
