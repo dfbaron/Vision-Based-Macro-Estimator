@@ -77,7 +77,7 @@ The repository follows professional Object-Oriented and modular design principle
 ```
 vision-based-macro-estimator/
 ├── artifacts/                # Stores model checkpoints (.pth files)
-├── configs/                  # Configuration files (config.ini, training_config.yaml)
+├── config/                  # Configuration files (config.yaml)
 ├── data/                     # Data directory (ignored by Git)
 ├── scripts/                  # Executable scripts for running the pipeline
 │   ├── run_data_prep.py      # Prepares and splits the data
@@ -156,8 +156,6 @@ Your application will be available at **http://localhost:8501**.
 ---
 
 ## 📊 Model Performance
-
-*[**Action Required:** Update this table with your final model's results on the test set. MAE (Mean Absolute Error) is a highly interpretable metric for this problem.]*
 
 The final model was evaluated on the unseen test set.
 
