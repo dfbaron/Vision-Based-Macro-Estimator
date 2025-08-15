@@ -15,8 +15,7 @@ The final model is deployed in a user-friendly Streamlit web application. It fea
 
 *[**Action Required:** Record a short GIF of your Streamlit app in action. Show the login, image upload, prediction results, and the history dashboard. A GIF is the most effective way to showcase your final product.]*
 
-![Demo GIF of the Streamlit App](https://i.imgur.com/example.gif)
-*(Example: Log in, upload a meal photo, get instant nutritional analysis, and view your daily progress.)*
+![App Demo](img/Demo.gif)
 
 ---
 

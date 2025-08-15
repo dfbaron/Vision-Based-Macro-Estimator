@@ -125,9 +125,7 @@ def render_dashboard():
     goals = db.get_user_goals(user_id)
     all_meals = db.get_user_meals_df(user_id)
     
-    meals_today = all_meals[all_meals['timestamp'].dt.date == date.today()]
-
-    if meals_today.empty:
+    if all_meals.empty:
         st.info("👋 You haven't logged any meals yet today. Go to the 'Log a Meal' page to get started!")
         st.subheader("Your Daily Goals")
         col1, col2, col3, col4 = st.columns(4)
@@ -137,6 +135,8 @@ def render_dashboard():
         col4.metric("Protein", f"{goals.get('protein_grams', 0):.1f} g")
         st.stop()
 
+    meals_today = all_meals[all_meals['timestamp'].dt.date == date.today()]
+    
     # --- 2. Calcular Totales y Restantes ---
     totals = meals_today[['calories', 'fat_grams', 'carb_grams', 'protein_grams']].sum()
     remaining = {
