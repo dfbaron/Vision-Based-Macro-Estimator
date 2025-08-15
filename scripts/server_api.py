@@ -77,4 +77,4 @@ async def predict_image(file: UploadFile = File(..., description="An image file 
 if __name__ == '__main__':
     # Esto permite ejecutar la API con: python scripts/serve_api.py
     print("Starting Uvicorn server...")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8501)
