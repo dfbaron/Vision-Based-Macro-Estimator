@@ -13,8 +13,6 @@ An end-to-end Deep Learning project to estimate the nutritional content (calorie
 
 The final model is deployed in a user-friendly Streamlit web application. It features user registration/login, persistent meal history via a SQLite database, and interactive charts to track nutritional progress.
 
-*[**Action Required:** Record a short GIF of your Streamlit app in action. Show the login, image upload, prediction results, and the history dashboard. A GIF is the most effective way to showcase your final product.]*
-
 ![App Demo](img/Demo.gif)
 
 ---
