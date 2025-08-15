@@ -2,21 +2,21 @@
 
 [![Python Version](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/downloads/)
 [![Framework](https://img.shields.io/badge/PyTorch-2.0-orange.svg)](https://pytorch.org/)
-[![API](https://img.shields.io/badge/API-FastAPI-green.svg)](https://fastapi.tiangolo.com/)
+[![App](https://img.shields.io/badge/-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-An end-to-end Deep Learning project to estimate the nutritional content (calories, fat, carbohydrates, and protein) directly from an image of a meal. This repository showcases a full MLOps pipeline, from reproducible data preprocessing and model training to a containerized API for inference.
+An end-to-end Deep Learning project to estimate the nutritional content (calories, fat, carbohydrates, and protein) directly from an image of a meal. This repository showcases a full MLOps pipeline, from reproducible data preprocessing and model training to a fully interactive Streamlit web application with user authentication and persistent data storage.
 
 ---
 
-### 🎥 Demo
+### 🎥 Interactive Demo
 
-This project is deployed as a containerized FastAPI service. An interactive demo can be built on top using tools like Gradio or a simple web front-end.
+The final model is deployed in a user-friendly Streamlit web application. It features user registration/login, persistent meal history via a SQLite database, and interactive charts to track nutritional progress.
 
-*[**Acción requerida:** Graba un GIF corto mostrando cómo envías una imagen al endpoint de la API (usando la documentación de FastAPI en http://localhost:8080/docs) y muestras el resultado JSON. Un GIF es extremadamente efectivo.]*
+*[**Action Required:** Record a short GIF of your Streamlit app in action. Show the login, image upload, prediction results, and the history dashboard. A GIF is the most effective way to showcase your final product.]*
 
-![Demo GIF Placeholder](https://i.imgur.com/example.gif)
-*(Ejemplo: Sube una imagen a la API y obtén las macros estimadas al instante)*
+![Demo GIF of the Streamlit App](https://i.imgur.com/example.gif)
+*(Example: Log in, upload a meal photo, get instant nutritional analysis, and view your daily progress.)*
 
 ---
 
@@ -27,46 +27,46 @@ This project is deployed as a containerized FastAPI service. An interactive demo
 4.  [Project Structure](#-project-structure)
 5.  [Setup & Installation](#-setup--installation)
 6.  [Usage - A Reproducible Pipeline](#-usage---a-reproducible-pipeline)
-7.  [Dockerization - Build & Run](#-dockerization---build--run)
-8.  [Model Performance](#-model-performance)
-9.  [Future Work](#-future-work)
-10. [License](#-license)
+7.  [Model Performance](#-model-performance)
+8.  [Future Work](#-future-work)
+9.  [License](#-license)
 
 ---
 
 ## 🎯 Problem Statement
 
-Tracking nutritional intake is crucial for health and fitness, but manual logging of meals is tedious, time-consuming, and often inaccurate. This project automates this process by leveraging computer vision. By simply taking a photo of a meal, the system provides a robust estimate of its macronutrient content, making dietary tracking effortless and accessible.
+Tracking nutritional intake is crucial for health and fitness, but manual logging of meals is tedious, time-consuming, and often inaccurate. This project automates this process by leveraging computer vision. By simply taking a photo of a meal, the system provides a robust estimate of its macronutrient content within a full-featured application, making dietary tracking effortless and insightful.
 
 ## ✨ Features
 
--   **Nutritional Estimation**: Predicts four key nutritional values: **Total Calories (kcal), Fat (g), Carbohydrates (g), and Protein (g)**.
--   **Deep Learning Model**: Fine-tunes a pre-trained **Vision Transformer (ViT-B/16 on ImageNet-21k)** for the regression task.
--   **End-to-End MLOps Pipeline**: A complete, script-driven pipeline from raw data to a trained, deployable model.
--   **Reproducibility First**:
-    -   **Configuration-Driven**: All hyperparameters and paths are managed via a `config.ini` file, separating code from configuration.
-    -   **Reproducible Data Splits**: A dedicated script creates fixed train, validation, and test sets based on `dish_id` to prevent data leakage.
+-   **AI-Powered Nutritional Estimation**: Predicts **Calories, Fat, Carbs, and Protein** from a single image.
+-   **Full-Featured Web Application**: An interactive **Streamlit** app provides a complete user experience.
+-   **User Authentication**: Secure user registration and login system with password hashing.
+-   **Persistent Data Storage**: Utilizes a **SQLite** database to store user profiles, goals, and meal history.
+-   **Interactive Dashboard**: Users can track their daily progress against personal goals with dynamic charts and metrics.
+-   **Meal History & Trends**: A detailed log of all meals with visualizations to track nutritional trends over time.
+-   **End-to-End MLOps Pipeline**:
+    -   **Reproducible Data Splits**: A dedicated script creates fixed train/val/test sets based on `dish_id` to prevent data leakage.
+    -   **Configuration-Driven**: All hyperparameters and paths are managed via a `config.ini` file.
     -   **Dependency Management**: A Conda `environment.yml` file ensures a consistent development environment.
-    -   **Containerization**: A `Dockerfile` is provided to create a portable and reproducible production environment for the API.
--   **Robust Training**: Implements **Early Stopping** to prevent overfitting and saves the best-performing model based on validation loss.
--   **API for Inference**: A **FastAPI** service exposes the trained model via a clean, documented REST API endpoint for easy integration.
+-   **Robust Training**: Implements **Early Stopping** to prevent overfitting and save the best model.
 
 ---
 
 ## 🛠️ Tech Stack & Architecture
 
-This project is built with industry-standard tools for machine learning and software development.
+This project is built with industry-standard tools for machine learning and application development.
 
--   **Backend & Modeling**:
+-   **Modeling & Data Science**:
     -   ![Python](https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white)
     -   ![PyTorch](https://img.shields.io/badge/-PyTorch-EE4C2C?logo=pytorch&logoColor=white)
-    -   ![Timm](https://img.shields.io/badge/-Timm-grey) (for easy access to state-of-the-art vision models)
+    -   ![Timm](https://img.shields.io/badge/-Timm-grey) (for SOTA vision models)
     -   ![Pandas](https://img.shields.io/badge/-Pandas-150458?logo=pandas&logoColor=white) & ![NumPy](https://img.shields.io/badge/-NumPy-013243?logo=numpy&logoColor=white)
     -   ![Scikit-learn](https://img.shields.io/badge/-Scikit--learn-F7931E?logo=scikit-learn&logoColor=white)
--   **Deployment & API**:
-    -   ![FastAPI](https://img.shields.io/badge/-FastAPI-009688?logo=fastapi&logoColor=white)
-    -   ![Uvicorn](https://img.shields.io/badge/-Uvicorn-green)
-    -   ![Docker](https://img.shields.io/badge/-Docker-2496ED?logo=docker&logoColor=white)
+-   **Application & Deployment**:
+    -   ![Streamlit](https://img.shields.io/badge/-Streamlit-FF4B4B?logo=streamlit&logoColor=white)
+    -   ![SQLite](https://img.shields.io/badge/-SQLite-003B57?logo=sqlite&logoColor=white)
+    -   ![Docker](https://img.shields.io/badge/-Docker-2496ED?logo=docker&logoColor=white) (for containerizing the application)
 -   **Development Tools**:
     -   ![Conda](https://img.shields.io/badge/-Conda-44A833?logo=conda-forge&logoColor=white)
     -   ![Git](https://img.shields.io/badge/-Git-F05032?logo=git&logoColor=white) & ![GitHub](https://img.shields.io/badge/-GitHub-181717?logo=github&logoColor=white)
@@ -75,21 +75,22 @@ This project is built with industry-standard tools for machine learning and soft
 
 ## 📁 Project Structure
 
-The repository is organized following professional Object-Oriented and modular design principles.
+The repository follows professional Object-Oriented and modular design principles.
 
 ```
 vision-based-macro-estimator/
 ├── artifacts/                # Stores model checkpoints (.pth files)
-├── configs/                  # Configuration files (config.ini, etc.)
+├── configs/                  # Configuration files (config.ini, training_config.yaml)
 ├── data/                     # Data directory (ignored by Git)
 ├── scripts/                  # Executable scripts for running the pipeline
-│   ├── run_data_prep.py
-│   ├── train.py
-│   └── server_api.py
+│   ├── run_data_prep.py      # Prepares and splits the data
+│   ├── train.py              # Runs the model training
+│   └── app.py                # Runs the Streamlit application
 ├── src/
 │   └── macro_estimator/      # Source code package
 │       ├── __init__.py
 │       ├── data_preprocessing.py # DataPreparer class
+│       ├── database_utils.py     # Database interaction class
 │       ├── datasets.py           # Custom PyTorch Dataset class
 │       ├── models/
 │       │   └── vit_regressor.py  # Model architecture
@@ -119,10 +120,8 @@ cd Vision-Based-Macro-Estimator
 **2. Create the Conda Environment**
 Use the provided `environment.yml` file to create a consistent Conda environment.
 ```bash
-# It is recommended to use Mamba for faster installation
-# conda install -n base mamba -c conda-forge
-
-mamba env create -f environment.yml
+# This command will create an environment named 'macro-estimator'
+conda env create -f environment.yml
 
 # Activate the environment
 conda activate macro-estimator
@@ -144,44 +143,24 @@ python scripts/run_data_prep.py
 ```
 
 **Step 2: Train the Model**
-This script loads the processed data, initializes the model, and runs the training loop. All parameters are controlled by `configs/training_config.ini`.
+This script loads the processed data, initializes the model, and runs the training loop. All parameters are controlled by `configs/training_config.yaml`.
 ```bash
 python scripts/train.py
 ```
 The best model checkpoint is saved in `artifacts/models/`.
 
-**Step 3: Run the API Locally**
-Serve the model with a FastAPI endpoint.
+**Step 3: Run the Streamlit Application**
+Launch the interactive web application.
 ```bash
-uvicorn scripts.serve_api:app --reload
+streamlit run scripts/app.py
 ```
-You can now access the interactive API documentation at **http://127.0.0.1:8000/docs**.
-
----
-
-## 🐳 Dockerization - Build & Run
-
-The application is fully containerized for easy and reproducible deployment.
-
-**1. Build the Docker Image**
-From the root of the project, run:
-```bash
-docker build -t macro-estimator-api .
-```
-
-**2. Run the Docker Container**
-This command starts the container and maps your local port 8080 to the container's port 8000.
-```bash
-docker run -p 8080:8000 macro-estimator-api
-```
-
-Your API is now running inside a Docker container and is accessible at **http://localhost:8080/docs**.
+Your application will be available at **http://localhost:8501**.
 
 ---
 
 ## 📊 Model Performance
 
-*[**Acción requerida:** Actualiza esta tabla con los resultados finales de tu modelo en el conjunto de test. El MAE (Error Absoluto Medio) es una métrica muy interpretable para este problema.]*
+*[**Action Required:** Update this table with your final model's results on the test set. MAE (Mean Absolute Error) is a highly interpretable metric for this problem.]*
 
 The final model was evaluated on the unseen test set.
 
@@ -189,15 +168,16 @@ The final model was evaluated on the unseen test set.
 |---------------|-----------------------|---------|-----------|-------------|
 | **MAE**       |         152.90        | 8.58	  | 7.72    | 7.80      |
 | **MSE**       |        48846.40       | 161.67  | 116.20    | 118.66      |
+| **R² Score**  |      221.01      |12.71|10.78|10.89
 
 ---
 
 ## 💡 Future Work
 
 -   **Improve Model Accuracy**: Experiment with different pre-trained backbones (e.g., ConvNeXt, EfficientNetV2) and more complex regression heads.
--   **Implement Segmentation**: Extend the model to first perform semantic segmentation to identify individual food items on the plate for more granular estimation.
--   **Cloud Deployment**: Deploy the containerized FastAPI service on a cloud platform like Google Cloud Run or AWS Elastic Beanstalk for a scalable, real-world service.
--   **CI/CD Pipeline**: Implement a GitHub Actions workflow to automatically test, build, and push the Docker image on new commits.
+-   **Implement Food Segmentation**: Extend the model to first perform semantic segmentation to identify individual food items on the plate, allowing for more granular and editable nutritional estimation.
+-   **Cloud Deployment**: Containerize the Streamlit application with Docker and deploy it on a cloud platform like Streamlit Community Cloud, Heroku, or AWS for public access.
+-   **CI/CD Pipeline**: Implement a GitHub Actions workflow to automatically test, build, and deploy the application on new commits.
 
 ---
 
