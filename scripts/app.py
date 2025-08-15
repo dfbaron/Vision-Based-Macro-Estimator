@@ -116,8 +116,7 @@ def render_login_page():
 
 def render_dashboard():
     """
-    Displays a beautiful and informative daily dashboard with progress metrics,
-    charts, and a summary of today's meals.
+    Displays a beautiful and informative daily dashboard with corrected metric labels.
     """
     st.header(f"Today's Dashboard: {date.today().strftime('%B %d, %Y')} 📅")
 
@@ -126,21 +125,19 @@ def render_dashboard():
     goals = db.get_user_goals(user_id)
     all_meals = db.get_user_meals_df(user_id)
     
-    # --- 2. Manejar el Estado Vacío (si no hay comidas) ---
-    if all_meals.empty:
+    meals_today = all_meals[all_meals['timestamp'].dt.date == date.today()]
+
+    if meals_today.empty:
         st.info("👋 You haven't logged any meals yet today. Go to the 'Log a Meal' page to get started!")
-        # Mostrar las metas incluso si no hay comidas
         st.subheader("Your Daily Goals")
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Calories", f"{goals.get('calories', 0):.0f} kcal")
         col2.metric("Carbs", f"{goals.get('carb_grams', 0):.1f} g")
         col3.metric("Fat", f"{goals.get('fat_grams', 0):.1f} g")
         col4.metric("Protein", f"{goals.get('protein_grams', 0):.1f} g")
-        st.stop() # Detener la ejecución de la página aquí
-    
-    meals_today = all_meals[all_meals['timestamp'].dt.date == date.today()]
+        st.stop()
 
-    # --- 3. Calcular Totales y Restantes ---
+    # --- 2. Calcular Totales y Restantes ---
     totals = meals_today[['calories', 'fat_grams', 'carb_grams', 'protein_grams']].sum()
     remaining = {
         'calories': goals['calories'] - totals.calories,
@@ -149,41 +146,49 @@ def render_dashboard():
         'protein': goals['protein_grams'] - totals.protein_grams
     }
 
-    # --- 4. Mostrar Métricas de Progreso y Restantes ---
+    # --- 3. Mostrar Métricas de Progreso y Restantes (con la corrección) ---
     st.subheader("Daily Progress")
     
-    # Usar pestañas para una vista más limpia
-    tab1, tab2 = st.tabs(["📊 Progress Bars", "🔢 Remaining Macros"])
+    tab1, tab2 = st.tabs(["📊 Progress Overview", "🔢 Remaining Macros"])
 
     with tab1:
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("**Calories**")
-            st.metric("", f"{totals.calories:.0f} / {goals['calories']:.0f} kcal")
-            st.progress(min(totals.calories / goals['calories'], 1.0))
-        with col2:
-            st.write("**Protein**")
-            st.metric("", f"{totals.protein_grams:.1f} / {goals['protein_grams']:.1f} g")
-            st.progress(min(totals.protein_grams / goals['protein_grams'], 1.0))
+        # --- CÓDIGO CORREGIDO ---
+        # Ahora pasamos el título directamente como la etiqueta de st.metric
+        # y eliminamos el st.write() redundante.
+        col1, col2, col3, col4 = st.columns(4)
+        
+        col1.metric(
+            label="Calories", 
+            value=f"{totals.calories:.0f} / {goals['calories']:.0f} kcal"
+        )
+        col1.progress(min(totals.calories / goals['calories'], 1.0))
 
-        col3, col4 = st.columns(2)
-        with col3:
-            st.write("**Carbs**")
-            st.metric("", f"{totals.carb_grams:.1f} / {goals['carb_grams']:.1f} g")
-            st.progress(min(totals.carb_grams / goals['carb_grams'], 1.0))
-        with col4:
-            st.write("**Fat**")
-            st.metric("", f"{totals.fat_grams:.1f} / {goals['fat_grams']:.1f} g")
-            st.progress(min(totals.fat_grams / goals['fat_grams'], 1.0))
+        col2.metric(
+            label="Fat", 
+            value=f"{totals.fat_grams:.1f} / {goals['fat_grams']:.1f} g"
+        )
+        col2.progress(min(totals.fat_grams / goals['fat_grams'], 1.0))
 
+        col3.metric(
+            label="Carbs", 
+            value=f"{totals.carb_grams:.1f} / {goals['carb_grams']:.1f} g"
+        )
+        col3.progress(min(totals.carb_grams / goals['carb_grams'], 1.0))
+        
+        col4.metric(
+            label="Protein", 
+            value=f"{totals.protein_grams:.1f} / {goals['protein_grams']:.1f} g"
+        )
+        col4.progress(min(totals.protein_grams / goals['protein_grams'], 1.0))
+    
     with tab2:
+        # ... (esta sección ya era correcta, no necesita cambios)
         st.info("This is how much you have left to meet your daily goals.")
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Calories Left", f"{remaining['calories']:.0f} kcal")
         col2.metric("Carbs Left", f"{remaining['carbs']:.1f} g")
         col3.metric("Fat Left", f"{remaining['fat']:.1f} g")
         col4.metric("Protein Left", f"{remaining['protein']:.1f} g")
-
 
     st.markdown("---") # Separador
 
