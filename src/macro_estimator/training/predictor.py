@@ -5,7 +5,9 @@ from pathlib import Path
 from PIL import Image
 import io
 import numpy as np
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
+from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 # Importar la arquitectura del modelo
 from ..models.vit_regressor import ViTRegressor
@@ -88,3 +90,40 @@ class Predictor:
         with open(image_path, "rb") as f:
             image_bytes = f.read()
         return self.predict_from_bytes(image_bytes)
+    
+    def predict_on_loader(self, dataloader: DataLoader) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Runs predictions on an entire dataset provided by a DataLoader.
+        This is the primary method for batch evaluation.
+
+        Args:
+            dataloader (DataLoader): The DataLoader containing the test data.
+
+        Returns:
+            A tuple (y_true, y_preds) of NumPy arrays.
+        """
+        self.model.eval()  # Asegurarse de que el modelo esté en modo de evaluación
+        
+        y_true = []
+        y_preds = []
+
+        # Envolver el dataloader con tqdm para una barra de progreso
+        progress_bar = tqdm(dataloader, desc="Predicting on dataset")
+        
+        with torch.no_grad():
+            for images, labels in progress_bar:
+                # Mover las imágenes al dispositivo correcto
+                images = images.to(self.device)
+                
+                # Obtener las predicciones del modelo
+                outputs = self.model(images)
+                
+                # Mover los resultados a la CPU y guardarlos
+                y_preds.append(outputs.cpu().numpy())
+                y_true.append(labels.cpu().numpy())
+        
+        # Concatenar los resultados de todos los lotes en arrays únicos
+        y_preds = np.vstack(y_preds)
+        y_true = np.vstack(y_true)
+        
+        return y_true, np.maximum(y_preds, 0)

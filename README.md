@@ -187,8 +187,8 @@ The final model was evaluated on the unseen test set.
 
 | Metric        | Total Calories (kcal) | Fat (g) | Carbs (g) | Protein (g) |
 |---------------|-----------------------|---------|-----------|-------------|
-| **MAE**       | *[Actualizar]*      | *[Actualizar]*  | *[Actualizar]*    | *[Actualizar]*      |
-| **MSE**       | *[Actualizar]*      | *[Actualizar]*  | *[Actualizar]*    | *[Actualizar]*      |
+| **MAE**       |         152.90        | 8.58	  | 7.72    | 7.80      |
+| **MSE**       |        48846.40       | 161.67  | 116.20    | 118.66      |
 
 ---
 
