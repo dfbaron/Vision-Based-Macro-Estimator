@@ -44,7 +44,7 @@ Tracking nutritional intake is crucial for health and fitness, but manual loggin
 -   **Meal History & Trends**: A detailed log of all meals with visualizations to track nutritional trends over time.
 -   **End-to-End MLOps Pipeline**:
     -   **Reproducible Data Splits**: A dedicated script creates fixed train/val/test sets based on `dish_id` to prevent data leakage.
-    -   **Configuration-Driven**: All hyperparameters and paths are managed via a `config.ini` file.
+    -   **Configuration-Driven**: All hyperparameters and paths are managed via a `config.yaml` file.
     -   **Dependency Management**: A Conda `environment.yml` file ensures a consistent development environment.
 -   **Robust Training**: Implements **Early Stopping** to prevent overfitting and save the best model.
 
@@ -140,7 +140,7 @@ python scripts/run_data_prep.py
 ```
 
 **Step 2: Train the Model**
-This script loads the processed data, initializes the model, and runs the training loop. All parameters are controlled by `configs/training_config.yaml`.
+This script loads the processed data, initializes the model, and runs the training loop. All parameters are controlled by `config/config.yaml`.
 ```bash
 python scripts/train.py
 ```
@@ -151,7 +151,7 @@ Launch the interactive web application.
 ```bash
 streamlit run scripts/app.py
 ```
-Your application will be available at **http://localhost:8501**.
+Your application will be available at **http://localhost:8000**.
 
 ---
 

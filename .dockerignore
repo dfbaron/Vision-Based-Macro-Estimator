@@ -15,7 +15,6 @@ __pycache__/
 /macro-estimator/
 
 # Ignorar datos crudos y temporales (¡no deben estar en la imagen!)
-data/Extracted_Files/
 data/raw/
 notebooks/
 

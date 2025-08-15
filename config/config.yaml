@@ -1,6 +1,6 @@
 [data_paths]
-image_dir = data/Extracted_Files/nutrition5k_dataset/imagery/side_angles
-metadata_path = data/Extracted_Files/nutrition5k_dataset/metadata/dish_metadata_cafe1.csv,data/Extracted_Files/nutrition5k_dataset/metadata/dish_metadata_cafe2.csv
+image_dir = data/raw/nutrition5k_dataset/imagery/side_angles
+metadata_path = data/raw/nutrition5k_dataset/metadata/dish_metadata_cafe1.csv,data/raw/nutrition5k_dataset/metadata/dish_metadata_cafe2.csv
 output_dir = data/Processed_CSVs
 
 [model_paths]
